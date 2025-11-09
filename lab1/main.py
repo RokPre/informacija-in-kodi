@@ -1,116 +1,190 @@
 from math import log2, log
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 
-def sensible_Hn_values(path: str, max_n: int = 5):
+def sensible_Hn_values(path: str, max_n: int = 5) -> range:
     """
-    Compute the values of n for which H_n is sensible.
-    Input:
-        path: path to the file that will be read in binary mode.
-        max_n: the maximum value of n that will be considered.
-    Output:
-        n: the values of n for which H_n is sensible.
+    Compute the range of n values for which H_n (entropy per n-byte block) is sensible.
+
+    Args:
+        path: Path to the binary file.
+        max_n: Maximum n to consider.
+
+    Returns:
+        range of integers from 1 to sensible upper limit for n.
     """
     N = Path(path).stat().st_size  # File size in bytes
-    n = round(log(N, 2**8))  # Could be floor
+    n = round(log(N, 2**8))  # Rough upper limit of meaningful n
     return range(1, min(n + 1, max_n))
+
+
+def configure_matplotlib(font_size: int = 22):
+    """Globally configure matplotlib style (Times New Roman, proper sizing)."""
+    plt.rcParams.update(
+        {
+            "font.family": "Times New Roman",
+            "font.size": font_size,
+            "axes.labelsize": font_size,
+            "axes.titlesize": font_size,
+            "xtick.labelsize": font_size * 0.7,
+            "ytick.labelsize": font_size * 0.9,
+            "legend.fontsize": font_size * 0.8,
+            "figure.dpi": 600,
+        }
+    )
 
 
 def plot_probabilities_or_entropy(
     data: dict,
     xlabel: str = "n-byte block (hex)",
-    ylabel: str = "Data",
-    title: str = "Probabilities of n-byte windows/blocks",
-    file="figure.png",
+    ylabel: str = "Probability",
+    title: str = "Byte Distribution",
+    file: str = "figure.png",
 ):
-    import matplotlib.pyplot as plt
+    """
+    Plot probability or entropy data for n-byte blocks.
 
-    # Sort and convert binary keys for plotting
+    Args:
+        data: Dict mapping bytes sequences → probabilities.
+        xlabel, ylabel, title: Plot labels.
+        file: Output file path.
+    """
+    configure_matplotlib(22)
+
     sorted_keys = sorted(data.keys())
-    sorted_values = [data[key] for key in sorted_keys]
-    labels = [hex(key[0]) for key in sorted_keys]
+    sorted_values = [data[k] for k in sorted_keys]
 
-    font_size = 24
-    # 36 prevelik
+    # Use printable ASCII if possible, else hex representation
+    def key_to_label(k: bytes) -> str:
+        b = k[0]
+        return chr(b) if 32 <= b < 127 else hex(b)
 
-    plt.rcParams.update(
-        {
-            "font.size": font_size,  # osnovna velikost pisave
-            "axes.labelsize": font_size,  # velikost oznak osi
-            "xtick.labelsize": font_size * 0,  # velikost oznak na osi x
-            "ytick.labelsize": font_size,  # velikost oznak na osi y
-            "axes.titlesize": font_size,  # naslov grafa
-            "font.family": "Times New Roman",
-        }
-    )
-    plt.figure(figsize=(9, 5))
-    plt.bar(range(len(labels)), sorted_values)  # Use numeric positions
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.title(title)
+    labels = [key_to_label(k) for k in sorted_keys]
 
-    # Show only every 8th label
-    ax = plt.gca()
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(range(len(labels)), sorted_values, color="steelblue", edgecolor="black", linewidth=0.3)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+
+    # Show every 8th label for readability
     ax.set_xticks(range(0, len(labels), 8))
     ax.set_xticklabels([labels[i] for i in range(0, len(labels), 8)], rotation=90)
 
-    # Remove margins - bars go to edges
-    plt.xlim(-0.5, len(labels) - 0.5)
-
+    ax.set_xlim(-0.5, len(labels) - 0.5)
     plt.tight_layout()
 
-    plt.savefig(file, dpi=600, bbox_inches="tight")
+    Path(file).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(file, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_levels_of_entropy(
+    datasets: list[list[float]],
+    labels: list[str] | None = None,
+    xlabel: str = "n",
+    ylabel: str = "Hₙ [bit/znak]",
+    title: str = "Entropija za različne vrste podatkov",
+    file: str = "entropy_levels.png",
+):
+    """
+    Plot Hₙ vs n for multiple files or datasets.
+
+    Args:
+        datasets: List of Hₙ sequences (one per file).
+        labels: Corresponding labels for legend.
+        file: Output file path.
+    """
+    configure_matplotlib(22)
+    fig, ax = plt.subplots(figsize=(9, 5))
+
+    colors = ["tab:blue", "tab:green", "tab:red", "tab:purple", "tab:orange"]
+
+    for i, d in enumerate(datasets):
+        label = labels[i] if labels and i < len(labels) else f"Dataset {i+1}"
+        ax.plot(range(1, len(d) + 1), d, marker="o", linewidth=1.5, color=colors[i % len(colors)], label=label)
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend()
+    plt.tight_layout()
+
+    Path(file).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(file, bbox_inches="tight")
+    plt.close(fig)
 
 
 def my_analyze_file(path: str, n: int = 5):
     """
-    Compute H_n for a given file.
-    Input:
-        path: path to the file that will be read in binary mode,
-        n: the n in H_n, with of moving window with lenght n-bytes.
-    Output:
-        H_n: entropy in bits per n-byte block.
+    Compute Hₙ (entropy per n-byte block) for a file.
+
+    Args:
+        path: Path to binary file.
+        n: Block length in bytes.
+
+    Returns:
+        Tuple: (Hₙ value, entropies dict, probabilities dict, counts dict)
     """
-    data = Path(path).read_bytes()  # Reads the file in binary mode
-    counts = {}  # Initialize the dictionary of counts
+    data = Path(path).read_bytes()
+    counts: dict[bytes, int] = {}
+
+    # Count n-byte sequences
     for i in range(len(data) - n + 1):
-        key = data[i : i + n]  # Extract the n-byte window/block
-        counts[key] = counts[key] + 1 if key in counts else 1  # Increment the count or set it to 1 if it's the first time
+        key = data[i : i + n]
+        counts[key] = counts.get(key, 0) + 1
 
-    probs = {}  # Initialize the dictionary of probabilities
-    for key, count in counts.items():
-        probs[key] = count / (len(data) - n + 1)  # Compute the probability of the n-byte window/block
+    total_blocks = len(data) - n + 1
+    probs = {k: v / total_blocks for k, v in counts.items()}
+    entropies = {k: -p * log2(p) for k, p in probs.items()}
 
-    entropies = {}
-    for key, prob in probs.items():
-        entropies[key] = -prob * log2(prob)  # Compute the entropy of the n-byte window/block
-
-    h = sum(entropies.values()) / n  # Calculate the entropy in bits per n-byte block [bit/byte] or [bit/character]
-    return h, entropies, probs, counts
+    Hn = sum(entropies.values()) / n
+    return Hn, entropies, probs, counts
 
 
 if __name__ == "__main__":
-    # filepath = "datoteke/besedilo.txt"
-    # print("filepath:", filepath)
-    # for n in range(1, 6):
-    #     print(f"\tH_{n}: {my_analyze_file(filepath,  n=n)[0]}")
-    #
-    # files = ["iss_0480.jpg", "iss_0960.jpg", "iss_1920.jpg", "iss_2560.jpg", "iss_3840.jpg", "iss_7680.jpg"]
-    # for file in files:
-    #     filepath = f"datoteke/{file}"
-    #     print("filepath:", filepath)
-    #     for n in range(1, 6):
-    #         print(f"\tH_{n}: {my_analyze_file(filepath,  n=n)[0]}")
-    #
-    # files = ["posnetek.aiff", "posnetek.flac", "posnetek.m4a", "posnetek.mp3", "posnetek.ogg", "posnetek.raw", "posnetek.wav"]
-    # for file in files:
-    #     filepath = f"datoteke/{file}"
-    #     print("filepath:", filepath)
-    #     for n in range(1, 6):
-    #         print(f"\tH_{n}: {my_analyze_file(filepath,  n=n)[0]}")
+    # Example file paths
+    base = "datoteke"
+    text_file = f"{base}/besedilo.txt"
+    image_files = [f"{base}/iss_{r}.jpg" for r in ["0480", "0960", "1920", "2560", "3840", "7680"]]
+    audio_files = [f"{base}/posnetek.{ext}" for ext in ["aiff", "flac", "m4a", "mp3", "ogg", "raw", "wav"]]
 
-    xlabel = "n-bajtni nizi (od x00 do xFF)"
-    ylabel = "Verjetnost niza"
-    title = "Verjetnost n-bajtnih nizov"
-    plot_probabilities_or_entropy(my_analyze_file("datoteke/posnetek.aiff", n=1)[2], xlabel=xlabel, ylabel=ylabel, title=title, file="datoteke/verjetnostNizovAiff.png")
-    plot_probabilities_or_entropy(my_analyze_file("datoteke/posnetek.mp3", n=1)[2], xlabel=xlabel, ylabel=ylabel, title=title, file="datoteke/verjetnostNizovMp3.png")
+    # Compute and print entropies
+    for group in [text_file, *image_files, *audio_files]:
+        print(f"\nFile: {group}")
+        for n in range(1, 6):
+            Hn = my_analyze_file(group, n)[0]
+            print(f"  H_{n}: {Hn:.3f}")
+
+    # Plot example probability distributions
+    plot_probabilities_or_entropy(
+        my_analyze_file(f"{base}/posnetek.aiff", n=1)[2],
+        xlabel="Bajt (hex/ascii)",
+        ylabel="Verjetnost",
+        title="Porazdelitev bajtov – AIFF",
+        file=f"{base}/verjetnostNizovAiff.png",
+    )
+
+    plot_probabilities_or_entropy(
+        my_analyze_file(f"{base}/posnetek.mp3", n=1)[2],
+        xlabel="Bajt (hex/ascii)",
+        ylabel="Verjetnost",
+        title="Porazdelitev bajtov – MP3",
+        file=f"{base}/verjetnostNizovMp3.png",
+    )
+
+    # Entropy levels for multiple data types
+    result_text = [my_analyze_file(text_file, n=n)[0] for n in range(1, 26)]
+    result_image = [my_analyze_file(f"{base}/iss_3840.jpg", n=n)[0] for n in range(1, 26)]
+    result_audio = [my_analyze_file(f"{base}/posnetek.aiff", n=n)[0] for n in range(1, 26)]
+    result_audio_mp3 = [my_analyze_file(f"{base}/posnetek.mp3", n=n)[0] for n in range(1, 26)]
+
+    plot_levels_of_entropy(
+        [result_text, result_image, result_audio, result_audio_mp3],
+        labels=["Besedilo", "Slika", "Zvok (AIFF)", "Zvok (MP3)"],
+        xlabel="Dolžina niza n [bajtov]",
+        ylabel="Entropija Hₙ [bit/znak]",
+        title="Entropija pri različnih tipih datotek",
+        file=f"{base}/entropija_tipov.png",
+    )
