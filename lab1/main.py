@@ -15,8 +15,10 @@ def sensible_Hn_values(path: str, max_n: int = 5) -> range:
         range of integers from 1 to sensible upper limit for n.
     """
     N = Path(path).stat().st_size  # File size in bytes
-    n = round(log(N, 2**8))  # Rough upper limit of meaningful n
-    return range(1, min(n + 1, max_n))
+    # n = round(log(N, 2**8))  # Rough upper limit of meaningful n
+    # return range(1, min(n + 1, max_n))
+    n = int(N / 10)
+    return range(1, min(n, max_n) + 1)
 
 
 def configure_matplotlib(font_size: int = 22):
@@ -175,10 +177,14 @@ if __name__ == "__main__":
     )
 
     # Entropy levels for multiple data types
+    print(f"\tFile: {text_file}")
     result_text = [my_analyze_file(text_file, n=n)[0] for n in range(1, 26)]
-    result_image = [my_analyze_file(f"{base}/iss_3840.jpg", n=n)[0] for n in range(1, 26)]
-    result_audio = [my_analyze_file(f"{base}/posnetek.aiff", n=n)[0] for n in range(1, 26)]
-    result_audio_mp3 = [my_analyze_file(f"{base}/posnetek.mp3", n=n)[0] for n in range(1, 26)]
+    print(f"\tFile: {image_files[-1]}")
+    result_image = [my_analyze_file(image_files[-1], n=n)[0] for n in range(1, 26)]
+    print(f"\tFile: {audio_files[0]}")
+    result_audio = [my_analyze_file(audio_files[0], n=n)[0] for n in range(1, 26)]
+    print(f"\tFile: {audio_files[3]}")
+    result_audio_mp3 = [my_analyze_file(audio_files[3], n=n)[0] for n in range(1, 26)]
 
     plot_levels_of_entropy(
         [result_text, result_image, result_audio, result_audio_mp3],
