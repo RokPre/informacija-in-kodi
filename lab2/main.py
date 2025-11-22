@@ -27,7 +27,7 @@ def check_token(token: Union[str, int]) -> int:
     # https://learn.microsoft.com/en-us/windows/win32/intl/surrogates-and-supplementary-characters#about-supplementary-characters
     # https://www.johndcook.com/blog/2025/03/09/unicode-surrogates/
     if 0xD800 <= value and value <= 0xDFFF:
-        raise ValueError(f"Token cant be supplementary/surrage: {token}")
+        raise ValueError(f"Token can't be supplementary/surrage: {token}")
 
     return value
 
@@ -71,7 +71,7 @@ def encode_utf8(token: int) -> bytes:
     )
 
 
-def convert_file(input_path: str, output_path: str) -> None:
+def convert_file(input_path: str, text_output_path: str, table_output_path: str) -> None:
     """
     Preberemo datoteko in jo zapisemo v novo datoteko zapisano z UTF-8.
     """
@@ -90,17 +90,44 @@ def convert_file(input_path: str, output_path: str) -> None:
         out.extend(encode_utf8(check_token(tok)))
 
     # Zapišemo rezultat v datoteko.
-    with open(output_path, "wb") as f:
+    with open(text_output_path, "wb") as f:
         f.write(out)
+        print(f"Saved converted text to {text_output_path}")
+
+    # Definiramo string ki se bo shranil v datoteko z tabelo vseh znakov.
+    table: str = "| znak | dec | heks | bin |\n"
+    table += "| ---- | --- | ---- | --- |\n"
+
+    # Dekodiramo v utf-8 format.
+    text = out.decode("utf-8")
+
+    # Pridobim samo unikatne snake.
+    unikatni = sorted(set(text), key=lambda c: ord(c))
+
+    # Za vsak znak shranimo desetiški, šestnajtiški in binarni zapis.
+    for znak in unikatni:
+        b = znak.encode("utf-8")
+
+        decs = ", ".join(str(x) for x in b)
+        hexs = " ".join(f"{x:02X}" for x in b)
+        bins = " ".join(f"{x:08b}" for x in b)
+
+        table += f"| {repr(znak)} | {decs} | {hexs} | {bins} |\n"
+
+    # Zapišemo tabelo v datoteko.
+    with open(table_output_path, "w", encoding="utf-8") as f:
+        f.write(table)
+        print(f"Saved table of characters in {table_output_path}")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: main.py <input_file> <output_file>")
+    if len(sys.argv) < 4:
+        print("Usage: main.py <input_file> <output_file> <table_output_file>")
         sys.exit(1)
 
     input_path = sys.argv[1]
     output_path = sys.argv[2]
+    table_output_path = sys.argv[3]
 
     # Preverimo ali datoteka obstaja.
     if not os.path.isfile(input_path):
@@ -112,9 +139,11 @@ if __name__ == "__main__":
 
     # Preverimo ali imamo dostop do direktorija za shranjevanje datoteke.
     full_output_path = os.path.abspath(output_path)
+    full_table_output_path = os.path.abspath(table_output_path)
 
     # Direktorij, kamor bomo pisali.
     output_dir = os.path.dirname(full_output_path) or os.getcwd()
+    table_output_dir = os.path.dirname(full_table_output_path) or os.getcwd()
 
     # Preveri, ali direktorij obstaja.
     if not os.path.isdir(output_dir):
@@ -124,4 +153,12 @@ if __name__ == "__main__":
     if not os.access(output_dir, os.W_OK):
         raise OSError(f"Output directory not writable: {output_dir}")
 
-    convert_file(input_path, output_path)
+    # Preveri, ali direktorij obstaja.
+    if not os.path.isdir(table_output_dir):
+        raise OSError(f"Output directory does not exist: {table_output_dir}")
+
+    # Preveri, ali lahko v ta direktorij pišemo.
+    if not os.access(table_output_dir, os.W_OK):
+        raise OSError(f"Output directory not writable: {table_output_dir}")
+
+    convert_file(input_path, output_path, table_output_path)

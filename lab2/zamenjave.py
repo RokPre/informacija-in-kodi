@@ -15,11 +15,7 @@ for nice_name, codec in encodings.items():
     print("| znak | dec | heks | bin |")
     print("| ---- | --- | ---- | --- |")
     for znak in slovenski_znaki:
-        try:
-            b = znak.encode(codec)
-        except UnicodeEncodeError:
-            print(f"|{znak}|{nice_name}|(ni mogoče kodirati)| | |")
-            continue
+        b = znak.encode(codec)
 
         decs = int.from_bytes(b)
         hexs = " ".join(f"{x:02X}" for x in b)
