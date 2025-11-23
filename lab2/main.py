@@ -108,7 +108,7 @@ def convert_file(input_path: str, text_output_path: str, table_output_path: str)
     for znak in unikatni:
         b = znak.encode("utf-8")
 
-        decs = ", ".join(str(x) for x in b)
+        decs = int.from_bytes(b, "big")
         hexs = " ".join(f"{x:02X}" for x in b)
         bins = " ".join(f"{x:08b}" for x in b)
 

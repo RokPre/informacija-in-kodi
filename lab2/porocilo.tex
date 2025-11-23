@@ -11,10 +11,20 @@
 \usepackage[top=22.5mm, bottom=22.5mm, left=22.5mm, right=22.5mm]{geometry}
 \usepackage{hyperref}
 
+
+\usepackage{fontspec} % enables unicode + system fonts
+% Chinese (Simplified + Traditional)
+\newfontfamily\cjkfont{Noto Serif CJK SC}
+% Korean
+\newfontfamily\krfont{Noto Serif CJK KR}
+% Greek (if you want explicit control)
+\newfontfamily\grfont{Noto Serif}
+
+
 \usepackage{xcolor}
 
-\pagecolor[rgb]{0.1,0.1,0.1} %black
-\color[rgb]{0.9,0.9,0.95} %grey
+% \pagecolor[rgb]{0.1,0.1,0.1} %black
+% \color[rgb]{0.9,0.9,0.95} %grey
 
 % lokalne definicije
 \def\footnotemark{} % da se izognemo opombi na naslovnici (erk.sty trik)
@@ -210,12 +220,12 @@ znak & deset. & šest. & binarno \\ \hline
 \label{tab:utf16be}
 \end{table}
 
-V UTF-16 se znaki iz osnovne večjezične ravnine predstavijo z eno 16-bitno enoto, enako Unicode vrednosti. V tabelah~\ref{tab:utf16le} in~\ref{tab:utf16be} je prikazana 16-bitna binarna predstavitev kodnih točk šumnikov; pri UTF-16LE in UTF-16BE se bajta te 16-bitne vrednosti zamenjata.
+V tabelah~\ref{tab:utf16le} in~\ref{tab:utf16be} je prikazana 16-bitna binarna predstavitev kodnih točk , pri UTF-16LE in UTF-16BE se bajta te 16-bitne vrednosti zamenjata.
 
-Iz preglednic je razvidno, da se šumniki v različnih 8-bitnih kodnih tabelah nahajajo na različnih mestih, zato ista bajtna vrednost ne predstavlja nujno istega znaka.
+Iz preglednic je razvidno, da se šumniki v različnih kodnih tabelah nahajajo na različnih mestih, zato ista bajtna vrednost ne predstavlja nujno istega znaka.
 
 \subsection{Pretvorba datoteke v UTF-8}
-Vhodna datoteka vsebuje zaporedje Unicode kodnih točk, ki predstavljajo prvi stavek wikipedije o UTF-8 v več jezikih. Program je datoteko prebral kot ASCII besedilo ter ročno pretvoril v UTF-8 in rezultat zapisal v izhodno datoteko. Generirano datoteko smo uspešno odprli z urejevalnikom besedila, pri čemer so se vsi znaki prikazali pravilno.
+Vhodna datoteka vsebuje zaporedje Unicode kodnih točk, ki predstavljajo prvi stavek wikipedije o UTF-8 v več jezikih. Program je datoteko prebral kot ASCII besedilo ter ročno pretvoril v UTF-8 in rezultat zapisal v izhodno datoteko. Rezultati prvega dela naloge so vidni v prilogi \ref{nal2.1} ter v tabelah \ref{tab:nal2:eu}-\ref{tab:nal2:korean}.
 
 \section{Zaključek}
 V vaji smo primerjali kodne tabele za slovenske šumnike ter uspešno implementirali ročno pretvorbo Unicode kodnih točk v UTF-8, kar je potrdilo enoličnost in zanesljivost Unicode kodiranja.
@@ -269,5 +279,198 @@ Python Software Foundation, \emph{Python 3 Documentation}.
 [Na spletu]. Dostopno na: \url{https://docs.python.org/3/}
 
 \end{thebibliography}
+
+\appendix
+\section{Prevedno besedilo}
+\label{nal2.1}
+\begin{itemize}
+
+\item UTF-8 je eden izmed načinov kodiranja mednarodnega nabora znakov unicode, pri katerem znaki ASCII ostanejo enozložni, ostali znaki pa lahko zasedajo več zlogov.
+
+\item {\cjkfont UTF-8（8-bit Unicode Transformation Format）\\是一種針對Unicode的可變長度字元編碼，\\也是一种前缀码。}
+
+\item {\cjkfont UTF-8은 유니코드를 위한 가변 길이 문자 인코딩 방식 중 하나로, 켄 톰프슨과 롭 파이크가 만들었다.}
+
+\item {\grfont Το UTF-8 (8-bit Unicode Transformation Format) είναι ένα μη-απωλεστικό σχήμα κωδικοποίησης χαρακτήρων μεταβλητού μήκους για το πρότυπο Unicode που δημιουργήθηκε από τους Ken Thompson και Rob Pike.}
+\end{itemize}
+
+\section{Tabele}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+ znak & deset. & šest. & binarno \\ \hline
+ '$\backslash n$' & 10 & 0A & 00001010 \\
+ '$\backslash r$' & 13 & 0D & 00001101 \\
+ ' ' & 32 & 20 & 00100000  \\
+ '(' & 40 & 28 & 00101000  \\
+ ')' & 41 & 29 & 00101001  \\
+ ',' & 44 & 2C & 00101100  \\
+ '-' & 45 & 2D & 00101101  \\
+ '.' & 46 & 2E & 00101110  \\
+ '8' & 56 & 38 & 00111000  \\
+ 'A' & 65 & 41 & 01000001  \\
+ 'C' & 67 & 43 & 01000011  \\
+ 'F' & 70 & 46 & 01000110  \\
+ 'I' & 73 & 49 & 01001001  \\
+ 'K' & 75 & 4B & 01001011  \\
+ 'P' & 80 & 50 & 01010000  \\
+ 'R' & 82 & 52 & 01010010  \\
+ 'S' & 83 & 53 & 01010011  \\
+ 'T' & 84 & 54 & 01010100  \\
+ 'U' & 85 & 55 & 01010101  \\
+ 'a' & 97 & 61 & 01100001  \\
+ 'b' & 98 & 62 & 01100010  \\
+ 'c' & 99 & 63 & 01100011  \\
+ 'd' & 100 & 64 & 01100100 \\
+ 'e' & 101 & 65 & 01100101 \\
+ 'f' & 102 & 66 & 01100110 \\
+ 'g' & 103 & 67 & 01100111 \\
+ 'h' & 104 & 68 & 01101000 \\
+ 'i' & 105 & 69 & 01101001 \\
+ 'j' & 106 & 6A & 01101010 \\
+ 'k' & 107 & 6B & 01101011 \\
+ 'l' & 108 & 6C & 01101100 \\
+ 'm' & 109 & 6D & 01101101 \\
+ 'n' & 110 & 6E & 01101110 \\
+ 'o' & 111 & 6F & 01101111 \\
+ 'p' & 112 & 70 & 01110000 \\
+ 'r' & 114 & 72 & 01110010 \\
+ 's' & 115 & 73 & 01110011 \\
+ 't' & 116 & 74 & 01110100 \\
+ 'u' & 117 & 75 & 01110101 \\
+ 'v' & 118 & 76 & 01110110 \\
+ 'z' & 122 & 7A & 01111010 \\
+ 'č' & 50317 & C4 8D & 11000100 10001101 \\
+ 'ž' & 50622 & C5 BE & 11000101 10111110 \\ \hline
+
+\end{tabular}
+\caption{Unikatni ASCII in slovenski znaki v prevedenem besedilu ter njihove kodne vrednosti.}
+\label{tab:nal2:eu}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+ znak & deset. & šest. & binarno \\ \hline
+
+ \grfont 'Τ' & 52900 & CE A4 & 11001110 10100100 \\
+ \grfont 'έ' & 52909 & CE AD & 11001110 10101101 \\
+ \grfont 'ή' & 52910 & CE AE & 11001110 10101110 \\
+ \grfont 'ί' & 52911 & CE AF & 11001110 10101111 \\
+ \grfont 'α' & 52913 & CE B1 & 11001110 10110001 \\
+ \grfont 'β' & 52914 & CE B2 & 11001110 10110010 \\
+ \grfont 'γ' & 52915 & CE B3 & 11001110 10110011 \\
+ \grfont 'δ' & 52916 & CE B4 & 11001110 10110100 \\
+ \grfont 'ε' & 52917 & CE B5 & 11001110 10110101 \\
+ \grfont 'η' & 52919 & CE B7 & 11001110 10110111 \\
+ \grfont 'θ' & 52920 & CE B8 & 11001110 10111000 \\
+ \grfont 'ι' & 52921 & CE B9 & 11001110 10111001 \\
+ \grfont 'κ' & 52922 & CE BA & 11001110 10111010 \\
+ \grfont 'λ' & 52923 & CE BB & 11001110 10111011 \\
+ \grfont 'μ' & 52924 & CE BC & 11001110 10111100 \\
+ \grfont 'ν' & 52925 & CE BD & 11001110 10111101 \\
+ \grfont 'ο' & 52927 & CE BF & 11001110 10111111 \\
+ \grfont 'π' & 53120 & CF 80 & 11001111 10000000 \\
+ \grfont 'ρ' & 53121 & CF 81 & 11001111 10000001 \\
+ \grfont 'ς' & 53122 & CF 82 & 11001111 10000010 \\
+ \grfont 'σ' & 53123 & CF 83 & 11001111 10000011 \\
+ \grfont 'τ' & 53124 & CF 84 & 11001111 10000100 \\
+ \grfont 'υ' & 53125 & CF 85 & 11001111 10000101 \\
+ \grfont 'χ' & 53127 & CF 87 & 11001111 10000111 \\
+ \grfont 'ω' & 53129 & CF 89 & 11001111 10001001 \\
+ \grfont 'ό' & 53132 & CF 8C & 11001111 10001100 \\
+ \grfont 'ύ' & 53133 & CF 8D & 11001111 10001101 \\ \hline
+
+\end{tabular}
+\caption{Unikatni grški znaki v prevedenem besedilu in njihove kodne vrednosti.}
+\label{tab:nal2:greek}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+ znak & deset. & šest. & binarno \\ \hline
+
+ \cjkfont '。' & 14909570 & E3 80 82 & 11100011 10000000 10000010 \\
+ \cjkfont '一' & 14989440 & E4 B8 80 & 11100100 10111000 10000000 \\
+ \cjkfont '也' & 14989727 & E4 B9 9F & 11100100 10111001 10011111 \\
+ \cjkfont '元' & 15041923 & E5 85 83 & 11100101 10000101 10000011 \\
+ \cjkfont '前' & 15042957 & E5 89 8D & 11100101 10001001 10001101 \\
+ \cjkfont '可' & 15044527 & E5 8F AF & 11100101 10001111 10101111 \\
+ \cjkfont '字' & 15052183 & E5 AD 97 & 11100101 10101101 10010111 \\
+ \cjkfont '對' & 15052941 & E5 B0 8D & 11100101 10110000 10001101 \\
+ \cjkfont '度' & 15055526 & E5 BA A6 & 11100101 10111010 10100110 \\
+ \cjkfont '是' & 15112367 & E6 98 AF & 11100110 10011000 10101111 \\
+ \cjkfont '的' & 15178372 & E7 9A 84 & 11100111 10011010 10000100 \\
+ \cjkfont '码' & 15179905 & E7 A0 81 & 11100111 10100000 10000001 \\
+ \cjkfont '碼' & 15180476 & E7 A2 BC & 11100111 10100010 10111100 \\
+ \cjkfont '种' & 15181709 & E7 A7 8D & 11100111 10100111 10001101 \\
+ \cjkfont '種' & 15181998 & E7 A8 AE & 11100111 10101000 10101110 \\
+ \cjkfont '編' & 15185832 & E7 B7 A8 & 11100111 10110111 10101000 \\
+ \cjkfont '缀' & 15187072 & E7 BC 80 & 11100111 10111100 10000000 \\
+ \cjkfont '變' & 15249034 & E8 AE 8A & 11101000 10101110 10001010 \\
+ \cjkfont '針' & 15304605 & E9 87 9D & 11101001 10000111 10011101 \\
+ \cjkfont '長' & 15308215 & E9 95 B7 & 11101001 10010101 10110111 \\ \hline
+
+\end{tabular}
+\caption{Unikatni kitajski znaki (CJK) v prevedenem besedilu in njihove kodne vrednosti.}
+\label{tab:nal2:chinese}
+\end{table}
+
+\clearpage
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+ znak & deset. & šest. & binarno \\ \hline
+
+ \cjkfont '가' & 15380608 & EA B0 80 & 11101010 10110000 10000000 \\
+ \cjkfont '과' & 15381436 & EA B3 BC & 11101010 10110011 10111100 \\
+ \cjkfont '길' & 15382712 & EA B8 B8 & 11101010 10111000 10111000 \\
+ \cjkfont '나' & 15434392 & EB 82 98 & 11101011 10000010 10011000 \\
+ \cjkfont '니' & 15436680 & EB 8B 88 & 11101011 10001011 10001000 \\
+ \cjkfont '다' & 15436708 & EB 8B A4 & 11101011 10001011 10100100 \\
+ \cjkfont '드' & 15438748 & EB 93 9C & 11101011 10010011 10011100 \\
+ \cjkfont '들' & 15438756 & EB 93 A4 & 11101011 10010011 10100100 \\
+ \cjkfont '딩' & 15439017 & EB 94 A9 & 11101011 10010100 10101001 \\
+ \cjkfont '로' & 15442332 & EB A1 9C & 11101011 10100001 10011100 \\
+ \cjkfont '롭' & 15442349 & EB A1 AD & 11101011 10100001 10101101 \\
+ \cjkfont '를' & 15443388 & EB A5 BC & 11101011 10100101 10111100 \\
+ \cjkfont '만' & 15443852 & EB A7 8C & 11101011 10100111 10001100 \\
+ \cjkfont '문' & 15445176 & EB AC B8 & 11101011 10101100 10111000 \\
+ \cjkfont '방' & 15446185 & EB B0 A9 & 11101011 10110000 10101001 \\
+ \cjkfont '변' & 15446912 & EB B3 80 & 11101011 10110011 10000000 \\
+ \cjkfont '슨' & 15501992 & EC 8A A8 & 11101100 10001010 10101000 \\
+ \cjkfont '식' & 15502237 & EC 8B 9D & 11101100 10001011 10011101 \\
+ \cjkfont '었' & 15505288 & EC 97 88 & 11101100 10010111 10001000 \\
+ \cjkfont '위' & 15506564 & EC 9C 84 & 11101100 10011100 10000100 \\
+ \cjkfont '유' & 15506592 & EC 9C A0 & 11101100 10011100 10100000 \\
+ \cjkfont '은' & 15506816 & EC 9D 80 & 11101100 10011101 10000000 \\
+ \cjkfont '이' & 15506868 & EC 9D B4 & 11101100 10011101 10110100 \\
+ \cjkfont '인' & 15506872 & EC 9D B8 & 11101100 10011101 10111000 \\
+ \cjkfont '자' & 15507088 & EC 9E 90 & 11101100 10011110 10010000 \\
+ \cjkfont '중' & 15508625 & EC A4 91 & 11101100 10100100 10010001 \\
+ \cjkfont '켄' & 15514756 & EC BC 84 & 11101100 10111100 10000100 \\
+ \cjkfont '코' & 15515028 & EC BD 94 & 11101100 10111101 10010100 \\
+ \cjkfont '크' & 15565228 & ED 81 AC & 11101101 10000001 10101100 \\
+ \cjkfont '톰' & 15566512 & ED 86 B0 & 11101101 10000110 10110000 \\
+ \cjkfont '파' & 15568012 & ED 8C 8C & 11101101 10001100 10001100 \\
+ \cjkfont '프' & 15570052 & ED 94 84 & 11101101 10010100 10000100 \\
+ \cjkfont '하' & 15570328 & ED 95 98 & 11101101 10010101 10011000 \\
+ \cjkfont '한' & 15570332 & ED 95 9C & 11101101 10010101 10011100 \\
+ \cjkfont '（' & 15711368 & EF BC 88 & 11101111 10111100 10001000 \\
+ \cjkfont '）' & 15711369 & EF BC 89 & 11101111 10111100 10001001 \\
+ \cjkfont '，' & 15711372 & EF BC 8C & 11101111 10111100 10001100 \\ \hline
+
+\end{tabular}
+\caption{Unikatni korejski znaki (Hangul) v prevedenem besedilu in njihove kodne vrednosti.}
+\label{tab:nal2:korean}
+\end{table}
 
 \end{document}
