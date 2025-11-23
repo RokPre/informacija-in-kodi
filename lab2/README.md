@@ -1,3 +1,4 @@
+[github](https://github.com/RokPre/informacija-in-kodi/tree/main/lab2)
 # 1. del: Kodne tabele za slovenske znake
 
 V prvem delu laboratorijske vaje je bilo potrebno generirati tabele, ki prikazujejo kodiranje znakov **"čšžČŠŽ"** v različnih kodnih tabelah (IBM-852, ISO-8859-2, Windows-1250, MacCE, UTF-8, UTF-16LE, UTF-16BE).
