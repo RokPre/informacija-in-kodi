@@ -23,22 +23,22 @@ def encode_RGBA(image, height, width):
             if pixel == running_list[color_hash] and pixel != prev_pixel:
                 output_bytes.append(color_hash)
                 prev_pixel = pixel.copy()
-                running_list[color_hash] = pixel
+                # running_list[color_hash] = pixel.copy()
                 continue
 
             # If colors are similar only store the differences
             # Check the first 6 bits fo the current pixels color chanels and the previous pixels color chanels
             diff = [pixel[i] - prev_pixel[i] for i in range(len(pixel))]
-            if -2 <= diff[0] <= 1 and -2 <= diff[1] <= 1 and -2 <= diff[2] <= 1 and diff[3] == 0:
+            if -2 <= diff[0] <= 1 and -2 <= diff[1] <= 1 and -2 <= diff[2] <= 1 and diff[3] == 0 and pixel != prev_pixel:
                 output_bytes.append(0b01000000 | ((diff[2] + 2) << 4) | ((diff[1] + 2) << 2) | (diff[0] + 2))
                 prev_pixel = pixel.copy()
-                running_list[color_hash] = pixel
+                running_list[color_hash] = pixel.copy()
                 continue
 
             output_bytes.extend([int(0b11111111), pixel[2], pixel[1], pixel[0], pixel[3]])
 
             # Update the running_.ist with the current pixel
-            running_list[color_hash] = pixel
+            running_list[color_hash] = pixel.copy()
             prev_pixel = pixel.copy()
 
     return output_bytes
@@ -56,25 +56,28 @@ def encode_RGB(image, height, width):
             color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7) % 64
 
             if pixel == running_list[color_hash] and pixel != prev_pixel:
+                print("INDEX")
                 output_bytes.append(color_hash)
                 prev_pixel = pixel.copy()
-                running_list[color_hash] = pixel
+                # running_list[color_hash] = pixel.copy()
                 continue
 
             # If colors are similar only store the differences
-            # Check the first 6 bits fo the current pixels color chanels and the previous pixels color chanels
             diff = [pixel[i] - prev_pixel[i] for i in range(len(pixel))]
-            if -2 <= diff[0] <= 1 and -2 <= diff[1] <= 1 and -2 <= diff[2] <= 1:
+            if -2 <= diff[0] <= 1 and -2 <= diff[1] <= 1 and -2 <= diff[2] <= 1 and pixel != prev_pixel:
+                print("DIFF")
                 output_bytes.append(0b01000000 | ((diff[2] + 2) << 4) | ((diff[1] + 2) << 2) | (diff[0] + 2))
                 prev_pixel = pixel.copy()
-                running_list[color_hash] = pixel
+                running_list[color_hash] = pixel.copy()
                 continue
 
             output_bytes.extend([int(0b11111110), pixel[2], pixel[1], pixel[0]])
+            print("UNIQUE")
 
             # Update the running_.ist with the current pixel
-            running_list[color_hash] = pixel
+            running_list[color_hash] = pixel.copy()
             prev_pixel = pixel.copy()
+
     return output_bytes
 
 
@@ -89,6 +92,7 @@ def main():
         args = sys.argv[1:]
 
     for image_name in args:
+        print(image_name)
         # Check if file is valid
         if not os.path.isfile(image_name):
             raise OSError(f"File is not valid or does not exist: {image_name}")
