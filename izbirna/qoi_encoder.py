@@ -45,39 +45,42 @@ def encode_RGBA(image, height, width):
 
 
 def encode_RGB(image, height, width):
+    operations = []
+
     output_bytes = bytearray()
-    prev_pixel: list[int] = [0, 0, 0]
+    pixel: list[int] = [0, 0, 0]
     running_list = [[0, 0, 0] for _ in range(64)]
+    print(running_list)
     for h in range(height):
         for w in range(width):
+            prev_pixel = pixel.copy()
             pixel = image[h][w]
             pixel = [int(chanel) for chanel in pixel]
 
             color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7) % 64
 
             if pixel == running_list[color_hash] and pixel != prev_pixel:
-                print("INDEX")
+                operations.append("index")
                 output_bytes.append(color_hash)
-                prev_pixel = pixel.copy()
                 # running_list[color_hash] = pixel.copy()
+                # pixel = running_list[color_hash]
                 continue
 
             # If colors are similar only store the differences
             diff = [pixel[i] - prev_pixel[i] for i in range(len(pixel))]
             if -2 <= diff[0] <= 1 and -2 <= diff[1] <= 1 and -2 <= diff[2] <= 1 and pixel != prev_pixel:
-                print("DIFF")
+                operations.append("diff")
                 output_bytes.append(0b01000000 | ((diff[2] + 2) << 4) | ((diff[1] + 2) << 2) | (diff[0] + 2))
-                prev_pixel = pixel.copy()
                 running_list[color_hash] = pixel.copy()
                 continue
 
             output_bytes.extend([int(0b11111110), pixel[2], pixel[1], pixel[0]])
-            print("UNIQUE")
+            operations.append("unique")
 
             # Update the running_.ist with the current pixel
             running_list[color_hash] = pixel.copy()
-            prev_pixel = pixel.copy()
 
+    print(operations[-5:])
     return output_bytes
 
 
@@ -110,6 +113,9 @@ def main():
         height = image.shape[0]
         width = image.shape[1]
         is_RGBA = image.shape[2] == 4
+
+        if image.shape[2] == 2:
+            continue
 
         # Init of output array
         output_bytes: bytearray = bytearray()
