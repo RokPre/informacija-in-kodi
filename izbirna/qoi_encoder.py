@@ -1,7 +1,3 @@
-# Read the image.
-# Get the width and height of the image.
-# The pixel values from the iamge.
-
 import cv2
 import sys
 import os
@@ -85,7 +81,6 @@ def main():
         args = sys.argv[1:]
 
     for image_name in args:
-        print(image_name)
         # Check if file is valid
         if not os.path.isfile(image_name):
             raise OSError(f"File is not valid or does not exist: {image_name}")
@@ -102,10 +97,16 @@ def main():
 
         height = image.shape[0]
         width = image.shape[1]
-        is_RGBA = image.shape[2] == 4
+
+        if len(image.shape) == 2:
+            print(f"Black and white images are not yet supported: {image_name}")
+            continue
 
         if image.shape[2] == 2:
+            print(f"Grayscale images are not yet supported: {image_name}")
             continue
+
+        is_RGBA = image.shape[2] == 4
 
         # Init of output array
         output_bytes: bytearray = bytearray()

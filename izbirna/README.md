@@ -50,4 +50,6 @@ Running array size is 64 bytes.
 
 
 Has function: $\text{index_position} = (3r + 5g + 7b + 11a) \% 64$.
+# TODOS
+- [ ] TODO: Implement run when pixels repeat.
 
