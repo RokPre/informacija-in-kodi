@@ -11,19 +11,19 @@ SUPPORTED_FILE_TYPES = ["png"]
 
 def encode_RGBA(image, height, width):
     output_bytes = bytearray()
-    prev_pixel: list[int] = [0, 0, 0, 255]
+    pixel: list[int] = [0, 0, 0, 255]
     running_list = [[0, 0, 0, 0] for _ in range(64)]
     for h in range(height):
         for w in range(width):
+            prev_pixel = pixel.copy()
             pixel = image[h][w]
             pixel = [int(chanel) for chanel in pixel]
 
+            # index_position = (r * 3 + g * 5 + b * 7 + a * 11) % 64
             color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + pixel[3] * 11) % 64
 
             if pixel == running_list[color_hash] and pixel != prev_pixel:
                 output_bytes.append(color_hash)
-                prev_pixel = pixel.copy()
-                # running_list[color_hash] = pixel.copy()
                 continue
 
             # If colors are similar only store the differences
@@ -31,7 +31,6 @@ def encode_RGBA(image, height, width):
             diff = [pixel[i] - prev_pixel[i] for i in range(len(pixel))]
             if -2 <= diff[0] <= 1 and -2 <= diff[1] <= 1 and -2 <= diff[2] <= 1 and diff[3] == 0 and pixel != prev_pixel:
                 output_bytes.append(0b01000000 | ((diff[2] + 2) << 4) | ((diff[1] + 2) << 2) | (diff[0] + 2))
-                prev_pixel = pixel.copy()
                 running_list[color_hash] = pixel.copy()
                 continue
 
@@ -39,48 +38,39 @@ def encode_RGBA(image, height, width):
 
             # Update the running_.ist with the current pixel
             running_list[color_hash] = pixel.copy()
-            prev_pixel = pixel.copy()
 
     return output_bytes
 
 
 def encode_RGB(image, height, width):
-    operations = []
-
     output_bytes = bytearray()
     pixel: list[int] = [0, 0, 0]
     running_list = [[0, 0, 0] for _ in range(64)]
-    print(running_list)
     for h in range(height):
         for w in range(width):
             prev_pixel = pixel.copy()
             pixel = image[h][w]
             pixel = [int(chanel) for chanel in pixel]
 
-            color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7) % 64
+            # index_position = (r * 3 + g * 5 + b * 7 + a * 11) % 64
+            color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + 255 * 11) % 64
 
             if pixel == running_list[color_hash] and pixel != prev_pixel:
-                operations.append("index")
                 output_bytes.append(color_hash)
-                # running_list[color_hash] = pixel.copy()
-                # pixel = running_list[color_hash]
                 continue
 
             # If colors are similar only store the differences
             diff = [pixel[i] - prev_pixel[i] for i in range(len(pixel))]
             if -2 <= diff[0] <= 1 and -2 <= diff[1] <= 1 and -2 <= diff[2] <= 1 and pixel != prev_pixel:
-                operations.append("diff")
                 output_bytes.append(0b01000000 | ((diff[2] + 2) << 4) | ((diff[1] + 2) << 2) | (diff[0] + 2))
                 running_list[color_hash] = pixel.copy()
                 continue
 
             output_bytes.extend([int(0b11111110), pixel[2], pixel[1], pixel[0]])
-            operations.append("unique")
 
             # Update the running_.ist with the current pixel
             running_list[color_hash] = pixel.copy()
 
-    print(operations[-5:])
     return output_bytes
 
 
