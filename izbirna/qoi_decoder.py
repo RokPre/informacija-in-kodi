@@ -12,6 +12,7 @@ def decode_RGB(data, height, width):
     running_list: list[list[int]] = [[0, 0, 0] for _ in range(64)]
 
     byte_index = -1
+    run_length = 0
     for h in range(height):
         for w in range(width):
             # pixel = [blue, green, red]
@@ -19,6 +20,19 @@ def decode_RGB(data, height, width):
             running_list[color_hash] = pixel.copy()
             prev_pixel = pixel.copy()
             byte_index += 1
+
+            # Run
+            if run_length > 0:
+                output_list[h][w] = prev_pixel
+                run_length -= 1
+                byte_index -= 1
+
+                continue
+
+            if data[byte_index] & 0b11000000 == 0b11000000:
+                run_length = data[byte_index] & 0b00111111
+                output_list[h][w] = prev_pixel
+                continue
 
             # Unique
             if data[byte_index] == 0b11111110:
@@ -48,6 +62,8 @@ def decode_RGBA(data, height, width):
     pixel: list[int] = [0, 0, 0, 255]
     running_list: list[list[int]] = [[0, 0, 0, 255] for _ in range(64)]
 
+    run_length = 0
+
     byte_index = -1
     for h in range(height):
         for w in range(width):
@@ -56,6 +72,19 @@ def decode_RGBA(data, height, width):
             running_list[color_hash] = pixel.copy()
             prev_pixel = pixel.copy()
             byte_index += 1
+
+            # Run
+            if run_length > 0:
+                output_list[h][w] = prev_pixel
+                run_length -= 1
+                byte_index -= 1
+
+                continue
+
+            if data[byte_index] & 0b11000000 == 0b11000000:
+                run_length = data[byte_index] & 0b00111111
+                output_list[h][w] = prev_pixel
+                continue
 
             # Unique
             if data[byte_index] == 0b11111111:
