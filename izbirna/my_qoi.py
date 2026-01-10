@@ -130,7 +130,7 @@ def encode_RGB(image, height, width):
 
 
 def encode(img):
-    image = cv2.imread(img.name, cv2.IMREAD_UNCHANGED)
+    image = cv2.imread(img, cv2.IMREAD_UNCHANGED)
 
     if len(image.shape) == 2:
         raise ValueError("QOI format does not support B/W images")
@@ -373,7 +373,7 @@ def decode_RGBA(data, height, width):
 
 
 def decode(img):
-    with open(img.name, "rb") as f:
+    with open(img, "rb") as f:
         file = f.read()
 
         header = file[0:14]

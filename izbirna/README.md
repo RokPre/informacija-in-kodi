@@ -63,7 +63,7 @@ cd ..
 source .venv/bin/activate
 python3 qoi_encoder.py images/*.png && mv images/*.qoi encoded/
 python3 qoi_decoder.py encoded/*.qoi && mv encoded/*.png decoded/
-# feh decoded/*
+feh decoded/*
 ```
 
 ```bash
