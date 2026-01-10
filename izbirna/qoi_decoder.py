@@ -99,32 +99,24 @@ def decode_RGB(data, height, width):
 
 
 def decode_RGBA(data, height, width):
-    output_list = [[[0, 0, 0, 255] for _ in range(width)] for _ in range(height)]
-    pixel: list[int] = [0, 0, 0, 255]
-    running_list: list[list[int]] = [[0, 0, 0, 255] for _ in range(64)]
+    output_list = [[[0, 0, 0, 0] for _ in range(width)] for _ in range(height)]
+    prev_pixel: list[int] = [0, 0, 0, 255]
+    running_list: list[list[int]] = [[0, 0, 0, 0] for _ in range(64)]
 
+    byte_index = 0
     run_length = 0
-
-    byte_index = -1
     for h in range(height):
         for w in range(width):
             # pixel = [blue, green, red]
-            color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + pixel[3] * 11) % 64
-            running_list[color_hash] = pixel.copy()
-            prev_pixel = pixel.copy()
-            byte_index += 1
 
             # Run
             if run_length > 0:
-                output_list[h][w] = prev_pixel
                 run_length -= 1
-                byte_index -= 1
+                pixel = prev_pixel.copy()
+                output_list[h][w] = pixel.copy()
 
-                continue
-
-            if data[byte_index] & 0b11000000 == 0b11000000:
-                run_length = data[byte_index] & 0b00111111
-                output_list[h][w] = prev_pixel
+                color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + pixel[3] * 11) % 64
+                running_list[color_hash] = pixel.copy()
                 continue
 
             # Unique
@@ -134,22 +126,72 @@ def decode_RGBA(data, height, width):
                 b = data[byte_index + 3]
                 a = data[byte_index + 4]
                 pixel = [b, g, r, a]
-                byte_index = byte_index + 4
                 output_list[h][w] = pixel.copy()
 
+                color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + pixel[3] * 11) % 64
+                running_list[color_hash] = pixel.copy()
+                prev_pixel = pixel.copy()
+                byte_index = byte_index + 5
                 continue
 
+            tag = data[byte_index] & 0b11000000
             # Index
-            if data[byte_index] & 0b11000000 == 0b00000000:
+            if tag == 0b00000000:
                 pixel = running_list[data[byte_index] & 0b00111111]
                 output_list[h][w] = pixel.copy()
+
+                prev_pixel = pixel.copy()
+                byte_index += 1
                 continue
 
             # Diff
-            if data[byte_index] & 0b11000000 == 0b01000000:
-                pixel = [prev_pixel[i] + ((data[byte_index] >> (2 * i)) & 0b11) - 2 for i in range(0, 3)]
-                pixel.append(prev_pixel[-1])
+            if tag == 0b01000000:
+                # pixel = [prev_pixel[i] + ((data[byte_index] >> (2 * i)) & 0b11) - 2 for i in range(0, 3)]
+                r = prev_pixel[2] + ((data[byte_index] >> 4) & 0b11) - 2
+                g = prev_pixel[1] + ((data[byte_index] >> 2) & 0b11) - 2
+                b = prev_pixel[0] + ((data[byte_index] >> 0) & 0b11) - 2
+                a = prev_pixel[3]
+                pixel = [b, g, r, a]
                 output_list[h][w] = pixel.copy()
+
+                color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + pixel[3] * 11) % 64
+                running_list[color_hash] = pixel.copy()
+                prev_pixel = pixel.copy()
+                byte_index += 1
+                continue
+
+            # Luma
+            if tag == 0b10000000:
+                dg = (data[byte_index] & 0b00111111) - 32
+
+                byte_index += 1
+
+                drdg = ((data[byte_index] >> 4) & 0b00001111) - 8
+                dbdg = ((data[byte_index] >> 0) & 0b00001111) - 8
+                dr = drdg + dg
+                db = dbdg + dg
+
+                a = prev_pixel[3]
+
+                pixel = [(prev_pixel[0] + db) & 0xFF, (prev_pixel[1] + dg) & 0xFF, (prev_pixel[2] + dr) & 0xFF, a]
+                output_list[h][w] = pixel.copy()
+
+                color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + pixel[3] * 11) % 64
+                running_list[color_hash] = pixel.copy()
+                prev_pixel = pixel.copy()
+                byte_index += 1
+                continue
+
+            # RUN start
+            if tag == 0b11000000:
+                run_length = data[byte_index] & 0b00111111
+                pixel = prev_pixel.copy()
+                output_list[h][w] = pixel
+
+                color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + pixel[3] * 11) % 64
+                running_list[color_hash] = pixel.copy()
+                prev_pixel = pixel.copy()
+                byte_index += 1
                 continue
 
     return output_list
@@ -177,8 +219,6 @@ def main():
 
     for i, input_file in enumerate(input_files):
         with open(input_file, "rb") as f:
-            # if first 8 bytes = qoif
-
             file = f.read()
             header = file[0:14]
             data = file[14:-8]
