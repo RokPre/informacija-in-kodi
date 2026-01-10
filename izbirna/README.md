@@ -1,9 +1,7 @@
 # About
 `my_qoi.py` je python module.
 
-Ima dve funkciji:
-1. `encode`;
-2. `decode`:
+Ima dve funkciji `encode` in `decode`.
 
 ## Encdoe
 Funkcija `enkode` ima 1 vhod, ta je ime datoteke, ki jo hočemo prebrati in pretvoriti v format `QOI`.
