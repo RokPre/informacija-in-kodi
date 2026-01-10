@@ -50,17 +50,15 @@ def encode_RGBA(image, height, width):
 
 def encode_RGB(image, height, width):
     output_bytes = bytearray()
-    pixel: list[int] = [0, 0, 0]
+    prev_pixel: list[int] = [0, 0, 0]
     running_list = [[0, 0, 0] for _ in range(64)]
     run = 0
+    color_hash = 0
     for h in range(height):
         for w in range(width):
-            prev_pixel = pixel.copy()
-            pixel = image[h][w]
-            pixel = [int(chanel) for chanel in pixel]
-
-            # Index equation
-            color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + 255 * 11) % 64
+            # Get the new pixel
+            pixel = image[h][w]  # pixel = [Blue, Green, Red]
+            pixel = [int(chanel) for chanel in pixel]  # Convert to int from np.uint8
 
             # Run
             if pixel == prev_pixel and run < 62:
@@ -71,22 +69,44 @@ def encode_RGB(image, height, width):
                 output_bytes.append(0b11000000 | (run - 1))
                 run = 0
 
+            color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + 255 * 11) % 64
+
             # Index
             if pixel == running_list[color_hash] and pixel != prev_pixel:
                 output_bytes.append(color_hash)
+
+                prev_pixel = running_list[color_hash]
                 continue
 
             # Diff
             diff = [pixel[i] - prev_pixel[i] for i in range(len(pixel))]
             if -2 <= diff[0] <= 1 and -2 <= diff[1] <= 1 and -2 <= diff[2] <= 1 and pixel != prev_pixel:
                 output_bytes.append(0b01000000 | ((diff[2] + 2) << 4) | ((diff[1] + 2) << 2) | (diff[0] + 2))
+
+                color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + 255 * 11) % 64
                 running_list[color_hash] = pixel.copy()
+                prev_pixel = pixel.copy()
+                continue
+
+            # Luma
+            difg = diff[1]  # Green. pixel = [Blue, Green, Red] => diff = [Blue_diff, Green_diff, Red_diff]
+            drdg = diff[2] - diff[1]  # dr - dg = pixel[2] - prev_pixel[2] - (pixel[1] - prev_pixel[1])
+            dbdg = diff[0] - diff[1]  # db - dg = pixel[0] - prev_pixel[0] - (pixel[1] - prev_pixel[1])
+            if -32 <= difg <= 31 and -8 <= drdg <= 7 and -8 <= dbdg <= 7 and pixel != prev_pixel:
+                output_bytes.extend([0b10000000 | (difg + 32), (drdg + 8) << 4 | (dbdg + 8)])
+
+                color_hash = (pixel[2] * 3 + pixel[1] * 5 + pixel[0] * 7 + 255 * 11) % 64
+                running_list[color_hash] = pixel.copy()
+                prev_pixel = pixel.copy()
                 continue
 
             output_bytes.extend([int(0b11111110), pixel[2], pixel[1], pixel[0]])
-
-            # Update the running_.ist with the current pixel
             running_list[color_hash] = pixel.copy()
+            prev_pixel = pixel.copy()
+
+    # Run flush
+    if run > 0:
+        output_bytes.append(0b11000000 | (run - 1))
 
     return output_bytes
 

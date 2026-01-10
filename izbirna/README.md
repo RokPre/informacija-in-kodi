@@ -48,8 +48,31 @@ Encoder starting value is `{r: 0, g: 0, b: 0, a: 255}`.
 
 Running array size is 64 bytes. 
 
-
 Has function: $\text{index_position} = (3r + 5g + 7b + 11a) \% 64$.
-# TODOS
-- [ ] TODO: Implement run when pixels repeat.
 
+```bash
+cd /home/rok/sync/faks4/informacijaInKodi/izbirna/images/
+rm * ../encoded/* ../decoded/*
+wget https://qoiformat.org/qoi_test_images.zip
+unzip qoi_test_images.zip && rm qoi_test_images.zip
+mv qoi_test_images/* . && rm qoi_test_images
+rm kodim23.png kodim10.png
+wget https://www.kaggle.com/api/v1/datasets/download/sherylmehta/kodak-dataset
+unzip kodak-dataset && rm kodak-dataset
+cd ..
+source .venv/bin/activate
+python3 qoi_encoder.py images/*.png && mv images/*.qoi encoded/
+python3 qoi_decoder.py encoded/*.qoi && mv encoded/*.png decoded/
+# feh decoded/*
+```
+
+```bash
+cd /home/rok/sync/faks4/informacijaInKodi/izbirna/
+python3 qoi_encoder.py images/kodim23.png
+rm log_kodim23.log && xxd images/kodim23.qoi >> log_kodim23.log
+rm log_kodim23_original.log && xxd images/kodim23.qoi.bak >> log_kodim23_original.log
+diff log_kodim23_original.log log_kodim23.log
+```
+
+
+# TODOS
