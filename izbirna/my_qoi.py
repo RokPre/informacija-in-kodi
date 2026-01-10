@@ -130,6 +130,16 @@ def encode_RGB(image, height, width):
 
 
 def encode(img):
+    """
+    Arguments: File path to an image that is not in the QOI format and can be read by cv2.
+    Output: Image object:
+                height: the height of the image,
+                width: the width of the image,
+                chanels: "RGB" or "RGBA",
+                colorspace: "sRGB" or "linear",
+                data: the pixel data [b, g, r] or [b, g, r, a],
+                binary: the binary data for the QOI format.
+    """
     image = cv2.imread(img, cv2.IMREAD_UNCHANGED)
 
     if len(image.shape) == 2:
@@ -373,6 +383,16 @@ def decode_RGBA(data, height, width):
 
 
 def decode(img):
+    """
+    Arguments: File path to an image that is in the QOI format and can be read by cv2.
+    Output: Image object:
+                height: the height of the image,
+                width: the width of the image,
+                chanels: "RGB" or "RGBA",
+                colorspace: "sRGB" or "linear",
+                data: the pixel data [b, g, r] or [b, g, r, a],
+                binary: the binary data for the QOI format.
+    """
     with open(img, "rb") as f:
         file = f.read()
 
